@@ -6,10 +6,10 @@ public class GameConfig {
 
     private int machinePlayers;
 
-    //  Constructor privado
+    // Constructor privado
     private GameConfig() {}
 
-    //  Devuelve siempre la misma instancia
+    // Devuelve siempre la misma instancia
     public static GameConfig getInstance() {
         if (instance == null) {
             instance = new GameConfig();

@@ -8,6 +8,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.net.URL;
 import java.util.*;
@@ -15,7 +16,10 @@ import java.util.*;
 public class GameController implements Initializable {
 
     @FXML private GridPane playerCardsGrid;
-    @FXML private HBox machineCardsArea;
+    @FXML private HBox machineTopArea;
+    @FXML private VBox machineLeftArea;
+    @FXML private VBox machineRightArea;
+
     @FXML private ImageView tableCardImage;
     @FXML private ImageView deckImage;
     @FXML private Label sumLabel;
@@ -23,10 +27,15 @@ public class GameController implements Initializable {
     private List<Card> deck = new ArrayList<>();
     private List<Card> playerHand = new ArrayList<>();
     private List<Card> machine1Hand = new ArrayList<>();
+    private List<Card> machine2Hand = new ArrayList<>();
+    private List<Card> machine3Hand = new ArrayList<>();
+
 
     private int tableSum = 0;
     private Card currentTableCard;
     private int numMachines;
+
+    private final Map<Card, Image> imageCache = new HashMap<>();
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -39,46 +48,93 @@ public class GameController implements Initializable {
 
     private void loadDeck() {
         deck.clear();
-        deck.addAll(Arrays.asList(Card.values()));
-        System.out.println("Cartas cargadas: " + deck.size());
+        deck.addAll(Arrays.asList(Card.values())); // deck es List<Card>
+
+        // cargar imágenes en la caché
+        imageCache.clear();
+        for (Card c : Card.values()) {
+            URL url = getClass().getResource(c.getResourcePath());
+            if (url == null) {
+                System.err.println("❌ No se encontró la carta: " + c.getResourcePath());
+                continue;
+            }
+            imageCache.put(c, new Image(url.toExternalForm()));
+        }
+
+        // cargar imagen de reverso también
+        URL backUrl = getClass().getResource("/edu/univalle/cincuentazo/cards/card_back.png");
+        if (backUrl != null) {
+            imageCache.put(null, new Image(backUrl.toExternalForm())); // opcional: usar null key para back
+        }
+
+        System.out.println("Cartas cargadas (enum): " + deck.size());
     }
+
 
     private void dealInitialCards(int numMachines) {
         for (int i = 0; i < 4; i++) {
             playerHand.add(deck.remove(0));
             if (numMachines >= 1) machine1Hand.add(deck.remove(0));
+            if (numMachines >= 2) machine2Hand.add(deck.remove(0));
+            if (numMachines >= 3) machine3Hand.add(deck.remove(0));
         }
     }
 
     private void displayHands() {
+        // === Cartas del jugador humano (abajo) ===
         playerCardsGrid.getChildren().clear();
-
-        // Mostrar mano del jugador humano (boca arriba)
         for (int i = 0; i < playerHand.size(); i++) {
             Card card = playerHand.get(i);
             URL url = getClass().getResource(card.getResourcePath());
-
-            if (url != null) {
-                ImageView img = new ImageView(new Image(url.toExternalForm()));
-                img.setFitHeight(120);
-                img.setFitWidth(80);
-                playerCardsGrid.add(img, i, 0);
-            } else {
-                System.err.println("No se encontró imagen de: " + card.getResourcePath());
+            if (url == null) {
+                System.err.println("❌ No se encontró la imagen para " + card);
+                continue;
             }
+            Image image = new Image(url.toExternalForm());
+            ImageView img = new ImageView(image);
+            img.setFitHeight(120);
+            img.setFitWidth(80);
+            playerCardsGrid.add(img, i, 0);
         }
 
-        // Mostrar cartas de la máquina boca abajo
-        machineCardsArea.getChildren().clear();
-        Image backImage = new Image(
-                getClass().getResource("/edu/univalle/cincuentazo/cards/card_back.png").toExternalForm());
+        // === Cartas de los jugadores máquina ===
+        URL backUrl = getClass().getResource("/edu/univalle/cincuentazo/cards/card_back.png");
+        if (backUrl == null) {
+            System.err.println("No se encontró la carta reverso (card_back.png)");
+            return;
+        }
+        Image backImage = new Image(backUrl.toExternalForm());
+
+        // Máquina superior (machine1)
+        machineTopArea.getChildren().clear();
         for (int i = 0; i < machine1Hand.size(); i++) {
             ImageView back = new ImageView(backImage);
-            back.setFitHeight(100);
-            back.setFitWidth(70);
-            machineCardsArea.getChildren().add(back);
+            back.setFitHeight(80);
+            back.setFitWidth(55);
+            machineTopArea.getChildren().add(back);
+        }
+
+        // Máquina izquierda (machine2)
+        machineLeftArea.getChildren().clear();
+        for (int i = 0; i < machine2Hand.size(); i++) {
+            ImageView back = new ImageView(backImage);
+            back.setFitHeight(55);
+            back.setFitWidth(80);
+            machineLeftArea.getChildren().add(back);
+        }
+
+        // Máquina derecha (machine3)
+        machineRightArea.getChildren().clear();
+        for (int i = 0; i < machine3Hand.size(); i++) {
+            ImageView back = new ImageView(backImage);
+            back.setFitHeight(55);
+            back.setFitWidth(80);
+            machineRightArea.getChildren().add(back);
         }
     }
+
+
+
 
     private void initializeTable() {
         currentTableCard = deck.remove(0);
@@ -106,15 +162,5 @@ public class GameController implements Initializable {
         dealInitialCards(numMachines);
         displayHands();
         initializeTable();
-    }
-
-    @FXML
-    private void onHandleTakeCard() {
-        System.out.println("El jugador tomó una carta.");
-        // Más adelante: sacar carta del mazo y actualizar interfaz
-    }
-
-    public void initializeGame(edu.univalle.cincuentazo.model.GameConfig config) {
-        System.out.println("Juego iniciado con " + config.getMachinePlayers() + " jugadores máquina.");
     }
 }
