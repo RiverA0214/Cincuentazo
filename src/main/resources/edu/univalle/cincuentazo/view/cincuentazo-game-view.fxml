@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="edu.univalle.cincuentazo.controller.GameController"
+            prefWidth="800" prefHeight="600">
+
+    <!-- 🔹 Zona superior: cartas de la máquina -->
+    <top>
+        <HBox fx:id="machineCardsArea"
+              alignment="center"
+              spacing="10">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20" />
+            </padding>
+        </HBox>
+
+    </top>
+
+    <!-- 🔹 Zona central: mesa -->
+    <center>
+        <VBox alignment="center" spacing="20">
+            <HBox alignment="center" spacing="30">
+                <!-- Carta en la mesa -->
+                <ImageView fx:id="tableCardImage"
+                           fitWidth="120"
+                           fitHeight="160"
+                           preserveRatio="true" />
+
+                <!-- Imagen del mazo -->
+                <ImageView fx:id="deckImage"
+                           fitWidth="100"
+                           fitHeight="140"
+                           preserveRatio="true"
+                           pickOnBounds="true"
+                           onMouseClicked="#onHandleTakeCard" />
+            </HBox>
+
+            <Label fx:id="sumLabel"
+                   text="Suma: 0"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+        </VBox>
+    </center>
+
+    <!-- 🔹 Zona inferior: cartas del jugador -->
+    <bottom>
+        <VBox alignment="center" spacing="15">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20" />
+            </padding>
+
+            <GridPane fx:id="playerCardsGrid"
+                      hgap="10"
+                      vgap="10"
+                      alignment="center" />
+            <Button text="Tomar carta"
+                    onAction="#onHandleTakeCard"
+                    style="-fx-font-size: 16px; -fx-padding: 8 20;" />
+        </VBox>
+    </bottom>
+
+</BorderPane>
