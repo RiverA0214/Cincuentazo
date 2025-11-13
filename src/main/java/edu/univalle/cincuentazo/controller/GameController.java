@@ -1,6 +1,7 @@
 package edu.univalle.cincuentazo.controller;
 
 import edu.univalle.cincuentazo.model.Card;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
@@ -13,6 +14,10 @@ import javafx.scene.layout.VBox;
 import java.net.URL;
 import java.util.*;
 
+import javafx.animation.PauseTransition;
+import javafx.util.Duration;
+
+
 public class GameController implements Initializable {
 
     @FXML private GridPane playerCardsGrid;
@@ -20,7 +25,7 @@ public class GameController implements Initializable {
     @FXML private VBox machineLeftArea;
     @FXML private VBox machineRightArea;
 
-    @FXML private ImageView tableCardImage;
+    @FXML private ImageView tableCardImage; //imagen central de la mesa
     @FXML private ImageView deckImage;
     @FXML private Label sumLabel;
 
@@ -31,7 +36,7 @@ public class GameController implements Initializable {
     private List<Card> machine3Hand = new ArrayList<>();
 
 
-    private int tableSum = 0;
+    private int tableSum = 0; //suma de la mesa
     private Card currentTableCard;
     private int numMachines;
 
@@ -55,7 +60,7 @@ public class GameController implements Initializable {
         for (Card c : Card.values()) {
             URL url = getClass().getResource(c.getResourcePath());
             if (url == null) {
-                System.err.println("❌ No se encontró la carta: " + c.getResourcePath());
+                System.err.println("No se encontró la carta: " + c.getResourcePath());
                 continue;
             }
             imageCache.put(c, new Image(url.toExternalForm()));
@@ -87,13 +92,17 @@ public class GameController implements Initializable {
             Card card = playerHand.get(i);
             URL url = getClass().getResource(card.getResourcePath());
             if (url == null) {
-                System.err.println("❌ No se encontró la imagen para " + card);
+                System.err.println("No se encontró la imagen para " + card);
                 continue;
             }
             Image image = new Image(url.toExternalForm());
             ImageView img = new ImageView(image);
             img.setFitHeight(120);
             img.setFitWidth(80);
+
+            //al hacer click
+            img.setOnMouseClicked(e -> playCard(card));
+
             playerCardsGrid.add(img, i, 0);
         }
 
@@ -133,9 +142,6 @@ public class GameController implements Initializable {
         }
     }
 
-
-
-
     private void initializeTable() {
         currentTableCard = deck.remove(0);
 
@@ -150,8 +156,14 @@ public class GameController implements Initializable {
 
     private int getCardValue(Card card) {
         String fileName = card.getFileName(); // ejemplo "s13.png"
-        String number = fileName.substring(1, 3); // "13"
-        return Integer.parseInt(number);
+        int value = Integer.parseInt(fileName.substring(1, 3)); // obtiene 13, 11, etc.
+
+        // Ajustar valores de J, Q, K
+        if (value >= 11 && value <= 13) {
+            value = -10;
+        }
+
+        return value;
     }
 
     public void startGame(int numMachines) {
@@ -163,4 +175,88 @@ public class GameController implements Initializable {
         displayHands();
         initializeTable();
     }
+
+    private void playCard(Card card) {
+        int cardValue = getCardValue(card);
+
+        if (tableSum + cardValue > 50) {
+            System.out.println("No puedes jugar esta carta, sumaria mas de 50.");
+            return;
+        }
+
+        //Juega la carta
+        tableSum += cardValue;
+        currentTableCard = card;
+        playerHand.remove(card);
+
+        // Actualiza la mesa
+        updateTableCard(card);
+
+        // Refresca la mano
+        displayHands();
+
+        System.out.println("Jugaste " + card + ". Suma actual: " + tableSum);
+
+        // Turno de las máquinas
+        playMachinesTurnSequential();
+    }
+
+    private void updateTableCard(Card card) {
+        try {
+            Image cardImage = new Image(
+                    getClass().getResource("/edu/univalle/cincuentazo/cards/" + card.getFileName()).toExternalForm()
+            );
+            tableCardImage.setImage(cardImage);
+            sumLabel.setText("Suma: " + tableSum);
+        } catch (Exception e) {
+            System.err.println("No se pudo actualizar la carta en la mesa: " + card.getFileName());
+        }
+    }
+
+
+    private void playMachinesTurnSequential() {
+        List<List<Card>> machines = List.of(machine1Hand, machine2Hand, machine3Hand);
+        playNextMachine(machines, 0); // Empieza con la primera
+    }
+
+    private void playNextMachine(List<List<Card>> machines, int index) {
+        if (index >= machines.size()) return; // Terminar si ya todas jugaron
+        List<Card> machine = machines.get(index);
+        if (machine.isEmpty()) {
+            playNextMachine(machines, index + 1);
+            return;
+        }
+
+        int delay = (int) (2000 + Math.random() * 2000); // 2 a 4 segundos
+        System.out.println("Máquina " + (index + 1) + " jugará en " + delay / 1000.0 + " segundos...");
+
+        PauseTransition pause = new PauseTransition(Duration.millis(delay));
+        pause.setOnFinished(e -> {
+            Card chosen = null;
+            for (Card c : machine) {
+                if (tableSum + getCardValue(c) <= 50) {
+                    chosen = c;
+                    break;
+                }
+            }
+
+            if (chosen != null) {
+                Card finalChosen = chosen;
+                tableSum += getCardValue(finalChosen);
+                currentTableCard = finalChosen;
+                machine.remove(finalChosen);
+                updateTableCard(finalChosen);
+                displayHands();
+                System.out.println("Máquina " + (index + 1) + " jugó " + finalChosen + ". Total: " + tableSum);
+            } else {
+                System.out.println("Máquina " + (index + 1) + " pasa su turno (no puede jugar sin exceder 50).");
+            }
+
+            // Llamar recursivamente a la siguiente máquina
+            playNextMachine(machines, index + 1);
+        });
+
+        pause.play();
+    }
+
 }
