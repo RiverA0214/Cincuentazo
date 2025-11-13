@@ -34,4 +34,8 @@ public enum Card {
     public String getResourcePath() {
         return "/edu/univalle/cincuentazo/cards/" + fileName;
     }
+
+    public boolean isAce() {
+        return fileName.endsWith("01.png");
+    }
 }

@@ -169,4 +169,9 @@ public class Game {
     public void setTableSum(int sum) {
         this.tableSum = sum;
     }
+
+    public void setCardValue(Card card, int value) {
+        values.put(card, value);
+    }
+
 }

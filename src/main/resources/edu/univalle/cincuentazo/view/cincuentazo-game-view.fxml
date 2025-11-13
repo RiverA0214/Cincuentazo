@@ -1,71 +1,78 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.Image?>
 
-<BorderPane fx:controller="edu.univalle.cincuentazo.controller.GameController"
+<BorderPane prefWidth="900" prefHeight="800" minWidth="900" minHeight="800"
+            style="-fx-background-color: linear-gradient(to bottom, #0b6623, #0f813e);"
             xmlns="http://javafx.com/javafx/24.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
-            prefWidth="900" prefHeight="700"
-            style="-fx-background-color: linear-gradient(to bottom right, #004d26, #006400, #1a472a);">
+            fx:controller="edu.univalle.cincuentazo.controller.GameController">
 
-    <!-- Título -->
+    <!-- Top: Jugador máquina superior -->
     <top>
-        <VBox alignment="center" spacing="20" style="-fx-padding: 15;">
-            <Label text="CINCUENTAZO"
-                   style="-fx-font-family: 'Showcard Gothic'; -fx-font-size: 36px; -fx-text-fill: gold; -fx-effect: dropshadow(one-pass-box, black, 4, 0.5, 2, 2);"/>
-        </VBox>
-    </top>
-
-    <!-- Jugador máquina superior -->
-    <top>
-        <VBox alignment="center" spacing="10" style="-fx-padding: 5;">
+        <VBox alignment="center" spacing="10" style="-fx-padding: 15;">
             <Label text="Máquina 1"
-                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 18px; -fx-text-fill: white;"/>
-            <HBox fx:id="machineTopArea" alignment="center" spacing="10"/>
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white; -fx-effect: dropshadow(one-pass-box, black, 4, 0.5, 1, 1);"/>
+            <HBox fx:id="machineTopArea" alignment="center" spacing="15"/>
         </VBox>
     </top>
 
-    <!-- Jugador máquina izquierda -->
+    <!-- Left: Jugador máquina izquierda -->
     <left>
         <VBox alignment="center" spacing="10" style="-fx-padding: 10;">
             <Label text="Máquina 2"
-                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 18px; -fx-text-fill: white;"/>
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
             <VBox fx:id="machineLeftArea" alignment="center" spacing="10"/>
         </VBox>
     </left>
 
-    <!-- Jugador máquina derecha -->
+    <!-- Right: Jugador máquina derecha -->
     <right>
         <VBox alignment="center" spacing="10" style="-fx-padding: 10;">
             <Label text="Máquina 3"
-                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 18px; -fx-text-fill: white;"/>
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white;"/>
             <VBox fx:id="machineRightArea" alignment="center" spacing="10"/>
         </VBox>
     </right>
 
-    <!-- Mesa (centro) -->
+    <!-- Center: Mesa -->
     <center>
-        <VBox alignment="center" spacing="25" style="-fx-padding: 20; -fx-background-color: linear-gradient(to bottom, #006400, #008000); -fx-background-radius: 20; -fx-effect: dropshadow(gaussian, black, 15, 0.5, 0, 0);">
-            <HBox alignment="center" spacing="50">
-                <ImageView fx:id="deckImage" fitWidth="100" fitHeight="150" onMouseClicked="#onDeckClicked"
+        <VBox alignment="center" prefHeight="406.0" prefWidth="672.0" spacing="25"
+              style="-fx-padding: 20; -fx-background-radius: 20; -fx-background-color: rgba(0,0,0,0.2); -fx-effect: dropshadow(gaussian, black, 15, 0.5, 0, 0);">
+            <HBox alignment="CENTER" spacing="50">
+                <ImageView fx:id="deckImage" fitHeight="150" fitWidth="100" onMouseClicked="#onDeckClicked"
                            style="-fx-effect: dropshadow(one-pass-box, black, 8, 0.5, 2, 2); -fx-cursor: hand;"/>
-                <ImageView fx:id="tableCardImage" fitWidth="100" fitHeight="150"
+                <ImageView fx:id="tableCardImage" fitHeight="150" fitWidth="100"
                            style="-fx-effect: dropshadow(one-pass-box, black, 8, 0.5, 2, 2);"/>
             </HBox>
             <Label fx:id="sumLabel" text="Suma: 0"
-                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 22px; -fx-text-fill: gold; -fx-font-weight: bold; -fx-effect: dropshadow(one-pass-box, black, 4, 0.5, 1, 1);"/>
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: gold; -fx-effect: dropshadow(one-pass-box, black, 4, 0.5, 1, 1);"/>
         </VBox>
     </center>
 
-    <!-- Jugador humano (abajo) -->
+    <!-- Bottom: Jugador humano -->
     <bottom>
         <VBox alignment="center" spacing="15" style="-fx-padding: 20;">
-            <Label text="Tú" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 20px; -fx-text-fill: white;"/>
-            <GridPane fx:id="playerCardsGrid" hgap="15" vgap="15" alignment="center"/>
+            <Label fx:id="turnMessageLabel" text=""
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: yellow; -fx-effect: dropshadow(one-pass-box, black, 4, 0.5, 1, 1);"/>
+            <Label text="Tú"
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+            <HBox fx:id="aceChoiceBox" alignment="center" spacing="10" visible="false">
+                <Label text="Elige el valor del As:"
+                       style="-fx-font-family: 'Century Gothic'; -fx-font-size: 16px; -fx-text-fill: white;"/>
+                <Button fx:id="aceOneButton" text="1" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 16px;"/>
+                <Button fx:id="aceTenButton" text="10" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 16px;"/>
+            </HBox>
+            <GridPane fx:id="playerCardsGrid" alignment="center" hgap="15" vgap="15"/>
         </VBox>
     </bottom>
+
 </BorderPane>

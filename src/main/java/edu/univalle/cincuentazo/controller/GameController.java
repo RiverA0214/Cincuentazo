@@ -8,6 +8,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -28,10 +29,19 @@ public class GameController implements Initializable {
     @FXML private ImageView tableCardImage;
     @FXML private ImageView deckImage;
     @FXML private Label sumLabel;
+    @FXML private HBox aceChoiceBox;
+    @FXML private Button aceOneButton;
+    @FXML private Button aceTenButton;
+    @FXML private Label turnMessageLabel;
+
+
+    private Card pendingAce; // Carta As que espera valor
 
     private Game game;
     private IPlayer humanPlayer;
     private boolean hasPlayedThisTurn = false;
+    private boolean humanTurn = true; // true cuando es el turno del humano
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -45,6 +55,15 @@ public class GameController implements Initializable {
     }
 
     // ------------------ VISTA ------------------
+
+    private void showTemporaryMessage(String message, int seconds) {
+        turnMessageLabel.setText(message); // mostrar mensaje
+        turnMessageLabel.setVisible(true);
+
+        PauseTransition pause = new PauseTransition(Duration.seconds(seconds));
+        pause.setOnFinished(e -> turnMessageLabel.setVisible(false)); // ocultar mensaje
+        pause.play();
+    }
 
     private void updateView() {
         tableCardImage.setImage(new Image(getClass().getResource(game.getCurrentTableCard().getResourcePath()).toExternalForm()));
@@ -90,6 +109,12 @@ public class GameController implements Initializable {
         }
     }
 
+    private void updateControls() {
+        playerCardsGrid.setDisable(!humanTurn); // deshabilita click en cartas
+        deckImage.setDisable(!humanTurn);       // deshabilita mazo
+    }
+
+
     private void showError(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -102,25 +127,41 @@ public class GameController implements Initializable {
 
     private void playCard(Card card) {
         try {
+            if (!humanTurn) return;
+
             if (hasPlayedThisTurn) {
                 showError("Invalid action", "You already played a card this turn. Draw from the deck!");
                 return;
             }
 
+            if (card.isAce()) {
+                // Guardamos el As pendiente y mostramos las opciones
+                pendingAce = card;
+                aceChoiceBox.setVisible(true);
+                aceOneButton.setOnAction(e -> chooseAceValue(1));
+                aceTenButton.setOnAction(e -> chooseAceValue(10));
+                return;
+            }
+
+            // Jugada normal
             if (game.playCard(humanPlayer, card)) {
                 System.out.println("Jugador jugó " + card + ". Suma = " + game.getTableSum());
                 hasPlayedThisTurn = true;
                 updateView();
             }
+
         } catch (InvalidCardPlayException e) {
             System.out.println("❌ No puedes jugar esa carta: " + e.getMessage());
             showError("Invalid play", e.getMessage());
         }
     }
 
+
     @FXML
     private void onDeckClicked() {
         try {
+            if (!humanTurn) return;
+
             if (!hasPlayedThisTurn) {
                 showError("Invalid action", "You must play a card before drawing from the deck!");
                 return;
@@ -141,6 +182,25 @@ public class GameController implements Initializable {
         }
     }
 
+    private void chooseAceValue(int value) {
+        try {
+            // Asignamos temporalmente el valor del As
+            game.setCardValue(pendingAce, value);
+
+            if (game.playCard(humanPlayer, pendingAce)) {
+                System.out.println("Jugador jugó As como " + value + ". Suma = " + game.getTableSum());
+                hasPlayedThisTurn = true;
+                updateView();
+            }
+
+        } catch (InvalidCardPlayException e) {
+            showError("Invalid play", e.getMessage());
+        } finally {
+            pendingAce = null;
+            aceChoiceBox.setVisible(false);
+        }
+    }
+
     // ------------------ ELIMINACIONES ------------------
 
     private void checkEliminations() {
@@ -154,9 +214,19 @@ public class GameController implements Initializable {
 
     // ------------------ TURNOS ------------------
 
+    private void startHumanTurn() {
+        humanTurn = true;
+        updateControls();
+        hasPlayedThisTurn = false;
+        showTemporaryMessage("¡Es tu turno!", 2); // mensaje de 2 segundos
+    }
+
     private void endHumanTurn() {
+        humanTurn = false;
+        updateControls();
         playMachinesTurn();
     }
+
 
     private void playMachinesTurn() {
         List<IPlayer> machines = game.getPlayers().subList(1, game.getPlayers().size());
@@ -166,10 +236,11 @@ public class GameController implements Initializable {
     private void playNextMachine(List<IPlayer> machines, int index) {
         if (index >= machines.size()) {
             checkGameOver();
-            Platform.runLater(() -> hasPlayedThisTurn = false);
+            // Activar turno humano
+            Platform.runLater(this::startHumanTurn);
+
             return;
         }
-
         IPlayer machine = machines.get(index);
         if (machine.isEliminated()) {
             playNextMachine(machines, index + 1);

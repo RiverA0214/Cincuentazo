@@ -8,51 +8,27 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane xmlns="http://javafx.com/javafx/24.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.univalle.cincuentazo.controller.StartController">
+<AnchorPane xmlns="http://javafx.com/javafx/24.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="edu.univalle.cincuentazo.controller.StartController"
+            style="-fx-background-color: linear-gradient(to bottom, #0b6623, #0f813e);">
+
     <children>
-        <VBox alignment="CENTER" prefHeight="300" prefWidth="400" spacing="15.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+        <VBox alignment="CENTER" prefHeight="300" prefWidth="400" spacing="20.0"
+              AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0"
+              AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
 
-            <!-- Título del juego -->
-            <Label text="CINCUENTAZO" textFill="#971616">
-                <font>
-                    <Font name="Showcard Gothic" size="32.0" />
-                </font>
-            </Label>
+            <Label text="CINCUENTAZO" textFill="#FFD700"
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 36; -fx-font-weight: bold;"/>
+            <Label text="Seleccione la cantidad de jugadores máquina:" textFill="#FFFFFF"
+                   style="-fx-font-family: 'Century Gothic'; -fx-font-size: 16;"/>
 
-            <!-- Texto de selección -->
-            <Label text="Seleccione la cantidad de jugadores máquina:" textFill="#2c1818">
-                <font>
-                    <Font name="Century Gothic" size="14.0" />
-                </font>
-            </Label>
+            <RadioButton fx:id="rb1" text="1 jugador máquina" textFill="white" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 14; -fx-cursor: hand;"/>
+            <RadioButton fx:id="rb2" text="2 jugadores máquina" textFill="white" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 14; -fx-cursor: hand;"/>
+            <RadioButton fx:id="rb3" text="3 jugadores máquina" textFill="white" style="-fx-font-family: 'Century Gothic'; -fx-font-size: 14; -fx-cursor: hand;"/>
 
-            <!-- RadioButtons -->
-            <RadioButton fx:id="rb1" style="-fx-cursor: hand;" text="1 jugador máquina" textFill="#2c1818">
-                <font>
-                    <Font name="Century Gothic" size="12.0" />
-                </font>
-            </RadioButton>
-            <RadioButton fx:id="rb2" style="-fx-cursor: hand;" text="2 jugadores máquina" textFill="#2c1818">
-                <font>
-                    <Font name="Century Gothic" size="12.0" />
-                </font>
-            </RadioButton>
-            <RadioButton fx:id="rb3" style="-fx-cursor: hand;" text="3 jugadores máquina" textFill="#2c1818">
-                <font>
-                    <Font name="Century Gothic" size="12.0" />
-                </font>
-            </RadioButton>
-
-            <!-- Botón iniciar -->
-            <Button fx:id="btnStart" disable="true" prefWidth="150" style="-fx-background-color: ffbdbd;" text="Iniciar juego" textFill="#2c0505">
-                <font>
-                    <Font name="Century Gothic" size="14.0" />
-                </font>
-            <cursor>
-               <Cursor fx:constant="HAND" />
-            </cursor>
-            </Button>
-
+            <Button fx:id="btnStart" text="Iniciar juego" disable="true"
+                    style="-fx-background-color: #FFD700; -fx-text-fill: #0b6623; -fx-font-family: 'Century Gothic'; -fx-font-size: 16; -fx-font-weight: bold; -fx-cursor: hand;"/>
         </VBox>
     </children>
 </AnchorPane>
