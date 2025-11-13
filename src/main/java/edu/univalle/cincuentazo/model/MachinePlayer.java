@@ -1,5 +1,7 @@
 package edu.univalle.cincuentazo.model;
 
+import edu.univalle.cincuentazo.exceptions.InvalidCardPlayException;
+
 public class MachinePlayer extends AbstractPlayer {
 
     public MachinePlayer(String name) {
@@ -18,7 +20,11 @@ public class MachinePlayer extends AbstractPlayer {
 
         if (chosen != null) {
             hand.remove(chosen);
-            game.playCard(this, chosen);
+            try {
+                game.playCard(this, chosen);
+            } catch (InvalidCardPlayException e) {
+                throw new RuntimeException(e);
+            }
             System.out.println(name + " jugó " + chosen + " (total: " + game.getTableSum() + ")");
             game.drawCard(this);
         } else {

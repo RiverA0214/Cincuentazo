@@ -1,5 +1,7 @@
 package edu.univalle.cincuentazo.controller;
 
+import edu.univalle.cincuentazo.exceptions.DeckEmptyException;
+import edu.univalle.cincuentazo.exceptions.InvalidCardPlayException;
 import edu.univalle.cincuentazo.model.*;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -30,7 +32,6 @@ public class GameController implements Initializable {
     private Game game;
     private IPlayer humanPlayer;
     private boolean hasPlayedThisTurn = false;
-    private PauseTransition turnTimer;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -41,15 +42,15 @@ public class GameController implements Initializable {
         game = new Game(numMachines);
         humanPlayer = game.getPlayers().get(0);
         updateView();
-        startHumanTurnTimer();
     }
 
-    // --------------------------------------------------
+    // ------------------ VISTA ------------------
 
     private void updateView() {
         tableCardImage.setImage(new Image(getClass().getResource(game.getCurrentTableCard().getResourcePath()).toExternalForm()));
         sumLabel.setText("Suma: " + game.getTableSum());
         displayHands();
+        displayMachineHands();
     }
 
     private void displayHands() {
@@ -64,50 +65,99 @@ public class GameController implements Initializable {
         }
     }
 
-    // --------------------------------------------------
+    private void displayMachineHands() {
+        machineTopArea.getChildren().clear();
+        machineLeftArea.getChildren().clear();
+        machineRightArea.getChildren().clear();
+
+        List<IPlayer> machines = game.getPlayers().subList(1, game.getPlayers().size());
+
+        for (int i = 0; i < machines.size(); i++) {
+            IPlayer machine = machines.get(i);
+            if (machine.isEliminated()) continue;
+
+            for (Card c : machine.getHand()) {
+                ImageView img = new ImageView(new Image(getClass().getResource("/edu/univalle/cincuentazo/cards/card_back.png").toExternalForm()));
+                img.setFitWidth(80);
+                img.setFitHeight(120);
+
+                switch (i) {
+                    case 0 -> machineTopArea.getChildren().add(img);
+                    case 1 -> machineLeftArea.getChildren().add(img);
+                    case 2 -> machineRightArea.getChildren().add(img);
+                }
+            }
+        }
+    }
+
+    private void showError(String title, String msg) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(msg);
+        alert.showAndWait();
+    }
+
+    // ------------------ JUEGO ------------------
 
     private void playCard(Card card) {
-        if (game.playCard(humanPlayer, card)) {
-            System.out.println("Jugador jugó " + card + ". Suma = " + game.getTableSum());
-            hasPlayedThisTurn = true;
-            updateView();
-        } else {
-            System.out.println("❌ No puedes jugar esa carta (supera 50).");
+        try {
+            if (hasPlayedThisTurn) {
+                showError("Invalid action", "You already played a card this turn. Draw from the deck!");
+                return;
+            }
+
+            if (game.playCard(humanPlayer, card)) {
+                System.out.println("Jugador jugó " + card + ". Suma = " + game.getTableSum());
+                hasPlayedThisTurn = true;
+                updateView();
+            }
+        } catch (InvalidCardPlayException e) {
+            System.out.println("❌ No puedes jugar esa carta: " + e.getMessage());
+            showError("Invalid play", e.getMessage());
         }
     }
 
     @FXML
     private void onDeckClicked() {
-        // Permitir tomar carta en cualquier momento, no solo después de jugar
-        if (game != null) {
+        try {
+            if (!hasPlayedThisTurn) {
+                showError("Invalid action", "You must play a card before drawing from the deck!");
+                return;
+            }
+
             game.drawCard(humanPlayer);
             System.out.println("Robaste una carta del mazo.");
+
+            checkEliminations(); // 🔹 Verificar si alguien queda eliminado
+
+            hasPlayedThisTurn = false;
             updateView();
             endHumanTurn();
+
+        } catch (DeckEmptyException e) {
+            System.out.println("❌ No puedes robar carta: " + e.getMessage());
+            showError("Deck empty", e.getMessage());
         }
     }
 
+    // ------------------ ELIMINACIONES ------------------
 
-    // --------------------------------------------------
-
-    private void startHumanTurnTimer() {
-        if (turnTimer != null) turnTimer.stop();
-
-        turnTimer = new PauseTransition(Duration.seconds(5));
-        turnTimer.setOnFinished(e -> {
-            System.out.println("⏰ Tiempo agotado, turno pasado automáticamente.");
-            endHumanTurn();
-        });
-        turnTimer.play();
+    private void checkEliminations() {
+        for (IPlayer player : game.getPlayers()) {
+            if (!player.isEliminated() && game.mustBeEliminated(player)) {
+                game.eliminatePlayer(player);
+                System.out.println(player.getName() + " ha sido eliminado.");
+            }
+        }
     }
 
+    // ------------------ TURNOS ------------------
+
     private void endHumanTurn() {
-        if (turnTimer != null) turnTimer.stop();
         playMachinesTurn();
     }
 
-    // --------------------------------------------------
-    // --- Turno de las máquinas ---
     private void playMachinesTurn() {
         List<IPlayer> machines = game.getPlayers().subList(1, game.getPlayers().size());
         playNextMachine(machines, 0);
@@ -116,13 +166,11 @@ public class GameController implements Initializable {
     private void playNextMachine(List<IPlayer> machines, int index) {
         if (index >= machines.size()) {
             checkGameOver();
-            // Cuando todas las máquinas terminen, vuelve el turno al humano
-            Platform.runLater(this::startHumanTurnTimer);
+            Platform.runLater(() -> hasPlayedThisTurn = false);
             return;
         }
 
         IPlayer machine = machines.get(index);
-
         if (machine.isEliminated()) {
             playNextMachine(machines, index + 1);
             return;
@@ -139,19 +187,23 @@ public class GameController implements Initializable {
             }
 
             if (chosen != null) {
-                game.playCard(machine, chosen);
-                System.out.println(machine.getName() + " jugó " + chosen + " (total: " + game.getTableSum() + ")");
-                game.drawCard(machine);
-            } else if (game.mustBeEliminated(machine)) {
-                System.out.println(machine.getName() + " eliminado (no puede jugar).");
-                game.eliminatePlayer(machine);
+                try {
+                    game.playCard(machine, chosen);
+                    System.out.println(machine.getName() + " jugó " + chosen + " (total: " + game.getTableSum() + ")");
+                    game.drawCard(machine);
+                } catch (InvalidCardPlayException | DeckEmptyException ex) {
+                    System.out.println("⚠️ Error en turno de máquina: " + ex.getMessage());
+                }
             }
 
             updateView();
+            checkEliminations(); // 🔹 Verificar eliminaciones después de cada turno de máquina
             playNextMachine(machines, index + 1);
         });
         pause.play();
     }
+
+    // ------------------ FIN DEL JUEGO ------------------
 
     private void checkGameOver() {
         if (game.isGameOver()) {
