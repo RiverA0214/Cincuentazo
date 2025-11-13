@@ -20,6 +20,31 @@ import javafx.util.Duration;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * Controller class for the main game GUI of Cincuentazo.
+ * <p>
+ * Manages the interactions between the game model ({@link Game}) and the
+ * JavaFX view. Handles user input for the human player, updates the
+ * game state, animates machine players' turns, and updates GUI elements
+ * such as card displays, table sum, and turn messages.
+ * </p>
+ *
+ * <p>Responsibilities include:</p>
+ * <ul>
+ *     <li>Starting a new game and initializing the view</li>
+ *     <li>Handling human player actions: playing cards and drawing from the deck</li>
+ *     <li>Handling special rules, such as Ace value selection</li>
+ *     <li>Updating the GUI to display hands, table, and machine players</li>
+ *     <li>Executing machine player turns automatically with delays</li>
+ *     <li>Checking for eliminated players and ending the game</li>
+ *     <li>Displaying messages and alerts to the user</li>
+ * </ul>
+ *
+ * @see Game
+ * @see IPlayer
+ * @see Card
+ * @since 1.0
+ */
 public class GameController implements Initializable {
 
     @FXML private GridPane playerCardsGrid;
@@ -35,27 +60,54 @@ public class GameController implements Initializable {
     @FXML private Label turnMessageLabel;
 
 
-    private Card pendingAce; // Carta As que espera valor
+    /** The Ace card awaiting value selection. */
+    private Card pendingAce;
 
+    /** The game model instance. */
     private Game game;
+
+    /** Reference to the human player. */
     private IPlayer humanPlayer;
+
+    /** Tracks if the human has played a card this turn. */
     private boolean hasPlayedThisTurn = false;
-    private boolean humanTurn = true; // true cuando es el turno del humano
+
+    /** Indicates whether it is currently the human player's turn. */
+    private boolean humanTurn = true;
 
 
+    /**
+     * Initializes the controller.
+     * <p>
+     * Sets the deck image to the back of a card.
+     * </p>
+     *
+     * @param location  the location used to resolve relative paths
+     * @param resources the resources used for localization
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         deckImage.setImage(new Image(getClass().getResource("/edu/univalle/cincuentazo/cards/card_back.png").toExternalForm()));
     }
 
+    /**
+     * Starts a new game with the specified number of machine players.
+     *
+     * @param numMachines the number of machine-controlled players
+     */
     public void startGame(int numMachines) {
         game = new Game(numMachines);
         humanPlayer = game.getPlayers().get(0);
         updateView();
     }
 
-    // ------------------ VISTA ------------------
 
+    /**
+     * Displays a temporary message on the screen for a given duration.
+     *
+     * @param message the message text
+     * @param seconds duration in seconds to show the message
+     */
     private void showTemporaryMessage(String message, int seconds) {
         turnMessageLabel.setText(message); // mostrar mensaje
         turnMessageLabel.setVisible(true);
@@ -65,6 +117,9 @@ public class GameController implements Initializable {
         pause.play();
     }
 
+    /**
+     * Updates the table view and all hands in the GUI.
+     */
     private void updateView() {
         tableCardImage.setImage(new Image(getClass().getResource(game.getCurrentTableCard().getResourcePath()).toExternalForm()));
         sumLabel.setText("Suma: " + game.getTableSum());
@@ -72,6 +127,9 @@ public class GameController implements Initializable {
         displayMachineHands();
     }
 
+    /**
+     * Displays the human player's hand with clickable cards.
+     */
     private void displayHands() {
         playerCardsGrid.getChildren().clear();
         for (int i = 0; i < humanPlayer.getHand().size(); i++) {
@@ -84,6 +142,9 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * Displays machine players' hands as card backs.
+     */
     private void displayMachineHands() {
         machineTopArea.getChildren().clear();
         machineLeftArea.getChildren().clear();
@@ -109,12 +170,21 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * Updates the GUI controls depending on whose turn it is.
+     */
     private void updateControls() {
         playerCardsGrid.setDisable(!humanTurn); // deshabilita click en cartas
         deckImage.setDisable(!humanTurn);       // deshabilita mazo
     }
 
 
+    /**
+     * Shows an error alert to the user.
+     *
+     * @param title the alert title
+     * @param msg   the message content
+     */
     private void showError(String title, String msg) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
@@ -123,8 +193,11 @@ public class GameController implements Initializable {
         alert.showAndWait();
     }
 
-    // ------------------ JUEGO ------------------
-
+    /**
+     * Handles the action when a human player clicks a card to play.
+     *
+     * @param card the card clicked by the player
+     */
     private void playCard(Card card) {
         try {
             if (!humanTurn) return;
@@ -156,7 +229,9 @@ public class GameController implements Initializable {
         }
     }
 
-
+    /**
+     * Handles the human player drawing a card from the deck.
+     */
     @FXML
     private void onDeckClicked() {
         try {
@@ -181,7 +256,11 @@ public class GameController implements Initializable {
             showError("Deck empty", e.getMessage());
         }
     }
-
+    /**
+     * Allows the human player to choose the value of an Ace.
+     *
+     * @param value the chosen value (1 or 10)
+     */
     private void chooseAceValue(int value) {
         try {
             // Asignamos temporalmente el valor del As
@@ -201,8 +280,9 @@ public class GameController implements Initializable {
         }
     }
 
-    // ------------------ ELIMINACIONES ------------------
-
+    /**
+     * Checks all players and eliminates any who cannot play a valid card.
+     */
     private void checkEliminations() {
         for (IPlayer player : game.getPlayers()) {
             if (!player.isEliminated() && game.mustBeEliminated(player)) {
@@ -212,8 +292,10 @@ public class GameController implements Initializable {
         }
     }
 
-    // ------------------ TURNOS ------------------
 
+    /**
+     * Starts the human player's turn and updates controls.
+     */
     private void startHumanTurn() {
         humanTurn = true;
         updateControls();
@@ -221,18 +303,29 @@ public class GameController implements Initializable {
         showTemporaryMessage("¡Es tu turno!", 2); // mensaje de 2 segundos
     }
 
+    /**
+     * Ends the human player's turn and triggers machine turns.
+     */
     private void endHumanTurn() {
         humanTurn = false;
         updateControls();
         playMachinesTurn();
     }
 
-
+    /**
+     * Executes the machine players' turns sequentially with delays.
+     */
     private void playMachinesTurn() {
         List<IPlayer> machines = game.getPlayers().subList(1, game.getPlayers().size());
         playNextMachine(machines, 0);
     }
 
+    /**
+     * Plays the next machine player's turn recursively.
+     *
+     * @param machines the list of machine players
+     * @param index    the current machine index
+     */
     private void playNextMachine(List<IPlayer> machines, int index) {
         if (index >= machines.size()) {
             checkGameOver();
@@ -274,8 +367,10 @@ public class GameController implements Initializable {
         pause.play();
     }
 
-    // ------------------ FIN DEL JUEGO ------------------
 
+    /**
+     * Checks if the game has ended and shows the winner message.
+     */
     private void checkGameOver() {
         if (game.isGameOver()) {
             IPlayer winner = game.getWinner();
@@ -284,6 +379,11 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * Displays the end-of-game message with the winner's name.
+     *
+     * @param winner the winning player
+     */
     private void endGameMessage(IPlayer winner) {
         Platform.runLater(() -> {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);

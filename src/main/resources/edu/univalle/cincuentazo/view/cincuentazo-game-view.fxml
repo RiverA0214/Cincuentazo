@@ -16,7 +16,7 @@
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="edu.univalle.cincuentazo.controller.GameController">
 
-    <!-- Top: Jugador máquina superior -->
+
     <top>
         <VBox alignment="center" spacing="10" style="-fx-padding: 15;">
             <Label text="Máquina 1"
@@ -25,7 +25,7 @@
         </VBox>
     </top>
 
-    <!-- Left: Jugador máquina izquierda -->
+
     <left>
         <VBox alignment="center" spacing="10" style="-fx-padding: 10;">
             <Label text="Máquina 2"
@@ -34,7 +34,7 @@
         </VBox>
     </left>
 
-    <!-- Right: Jugador máquina derecha -->
+
     <right>
         <VBox alignment="center" spacing="10" style="-fx-padding: 10;">
             <Label text="Máquina 3"
@@ -43,7 +43,7 @@
         </VBox>
     </right>
 
-    <!-- Center: Mesa -->
+
     <center>
         <VBox alignment="center" prefHeight="406.0" prefWidth="672.0" spacing="25"
               style="-fx-padding: 20; -fx-background-radius: 20; -fx-background-color: rgba(0,0,0,0.2); -fx-effect: dropshadow(gaussian, black, 15, 0.5, 0, 0);">
@@ -58,7 +58,7 @@
         </VBox>
     </center>
 
-    <!-- Bottom: Jugador humano -->
+
     <bottom>
         <VBox alignment="center" spacing="15" style="-fx-padding: 20;">
             <Label fx:id="turnMessageLabel" text=""

@@ -1,5 +1,20 @@
 package edu.univalle.cincuentazo.model;
 
+/**
+ * Represents a playing card in the Cincuentazo game.
+ * <p>
+ * Each card has an associated image file and belongs to one of the four suits:
+ * Clubs, Diamonds, Hearts, or Spades. The card value (Ace, 2-10, Jack, Queen, King)
+ * is encoded in its filename.
+ * </p>
+ *
+ * <p>
+ * Provides utility methods to get the file name, the resource path for the image,
+ * and to check if the card is an Ace.
+ * </p>
+ *
+ * @since 1.0
+ */
 public enum Card {
     //Clubs
     C01("c01.png"), C02("c02.png"), C03("c03.png"), C04("c04.png"),
@@ -21,20 +36,44 @@ public enum Card {
     S05("s05.png"), S06("s06.png"), S07("s07.png"), S08("s08.png"),
     S09("s09.png"), S10("s10.png"), S11("s11.png"), S12("s12.png"), S13("s13.png");
 
+    /** The filename of the card image. */
     private final String fileName;
 
+    /**
+     * Constructs a card with its associated image filename.
+     *
+     * @param fileName the name of the image file representing the card
+     */
     Card(String fileName) {
         this.fileName = fileName;
     }
 
+    /**
+     * Returns the filename of the card image.
+     *
+     * @return the image filename
+     */
     public String getFileName() {
         return fileName;
     }
 
+    /**
+     * Returns the full resource path of the card image.
+     *
+     * @return the resource path for loading the card image
+     */
     public String getResourcePath() {
         return "/edu/univalle/cincuentazo/cards/" + fileName;
     }
 
+    /**
+     * Checks if the card is an Ace.
+     * <p>
+     * Determined by whether the filename ends with "01.png".
+     * </p>
+     *
+     * @return true if the card is an Ace, false otherwise
+     */
     public boolean isAce() {
         return fileName.endsWith("01.png");
     }
