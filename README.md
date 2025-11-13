@@ -20,11 +20,11 @@ Cincuentazo es un juego de cartas digital basado en reglas similares al popular 
 ## 📁 Estructura del proyecto
 
 edu.univalle.cincuentazo
-│
-├─ model # Clases del modelo de juego (Game, Player, Card, etc.)
-├─ controller # Controladores para la interacción GUI
-├─ view # Vistas FXML y componentes visuales
-└─ Main.java # Clase principal para iniciar la aplicación
+
+-model # Clases del modelo de juego (Game, Player, Card, etc.)
+-controller # Controladores para la interacción GUI
+-view # Vistas FXML y componentes visuales
+-Main.java # Clase principal para iniciar la aplicación
 
 ---
 
