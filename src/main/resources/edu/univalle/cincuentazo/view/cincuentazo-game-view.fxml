@@ -38,7 +38,7 @@
     <center>
         <VBox alignment="center" spacing="20">
             <HBox alignment="center" spacing="40">
-                <ImageView fx:id="deckImage" fitWidth="100" fitHeight="150"/>
+                <ImageView fx:id="deckImage" fitWidth="100" fitHeight="150" onMouseClicked="#onDeckClicked"/>
                 <ImageView fx:id="tableCardImage" fitWidth="100" fitHeight="150"/>
             </HBox>
             <Label fx:id="sumLabel" text="Suma: 0" style="-fx-font-size: 20; -fx-text-fill: white;"/>

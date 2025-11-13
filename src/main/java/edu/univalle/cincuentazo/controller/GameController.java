@@ -42,6 +42,8 @@ public class GameController implements Initializable {
 
     private final Map<Card, Image> imageCache = new HashMap<>();
 
+    private boolean canDraw = false; // Controla si el jugador puede robar
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         // Carga inicial (sin repartir todavía)
@@ -172,6 +174,7 @@ public class GameController implements Initializable {
         loadDeck();
         Collections.shuffle(deck);
         dealInitialCards(numMachines);
+        System.out.println("Esperando a que el jugador juegue una carta.");
         displayHands();
         initializeTable();
     }
@@ -197,8 +200,8 @@ public class GameController implements Initializable {
 
         System.out.println("Jugaste " + card + ". Suma actual: " + tableSum);
 
-        // Turno de las máquinas
-        playMachinesTurnSequential();
+        canDraw = true; //ahora puede comer haciendo click en el maso
+        System.out.println("Esperando a que el jugador tome una carta del mazo.");
     }
 
     private void updateTableCard(Card card) {
@@ -220,7 +223,13 @@ public class GameController implements Initializable {
     }
 
     private void playNextMachine(List<List<Card>> machines, int index) {
-        if (index >= machines.size()) return; // Terminar si ya todas jugaron
+        if (index >= machines.size()){
+            PauseTransition pause = new PauseTransition(Duration.seconds(4));
+            pause.setOnFinished(e -> System.out.println("Esperando a que el jugador juegue una carta."));
+            pause.play();
+            return;
+        }
+
         List<Card> machine = machines.get(index);
         if (machine.isEmpty()) {
             playNextMachine(machines, index + 1);
@@ -248,6 +257,8 @@ public class GameController implements Initializable {
                 updateTableCard(finalChosen);
                 displayHands();
                 System.out.println("Máquina " + (index + 1) + " jugó " + finalChosen + ". Total: " + tableSum);
+
+                drawCard(machine, true);
             } else {
                 System.out.println("Máquina " + (index + 1) + " pasa su turno (no puede jugar sin exceder 50).");
             }
@@ -259,4 +270,41 @@ public class GameController implements Initializable {
         pause.play();
     }
 
+    private void drawCard(List<Card> hand, boolean isMachine) {
+        if (!deck.isEmpty() && hand.size() < 4) {
+            Card newCard = deck.remove(0); // Roba del mazo
+
+            if (isMachine) {
+                // Esperar entre 1 y 2 segundos antes de tomarla
+                int delay = (int) (1000 + Math.random() * 1000);
+                PauseTransition pause = new PauseTransition(Duration.millis(delay));
+                pause.setOnFinished(e -> {
+                    hand.add(newCard);
+                    displayHands();
+                    System.out.println("Máquina robó una carta después de " + delay / 1000.0 + " segundos.");
+                });
+                pause.play();
+
+            } else {
+                // Jugador humano roba inmediatamente (boca arriba)
+                hand.add(newCard);
+                displayHands();
+                System.out.println("Jugador robó una carta: " + newCard);
+            }
+        }
+    }
+
+    @FXML
+    private void onDeckClicked() {
+        if (canDraw) {
+            drawCard(playerHand, false);
+            canDraw = false; // Evita que robe más de una vez
+            System.out.println("Jugador tomó una carta del mazo.");
+
+            // Inicia el turno de las máquinas
+            playMachinesTurnSequential();
+        } else {
+            System.out.println("Aún no puedes tomar carta, primero juega una.");
+        }
+    }
 }
